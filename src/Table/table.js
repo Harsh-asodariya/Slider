@@ -16,7 +16,7 @@ class Table extends Component {
         data: [],
         slider: false,
     }
-    drawerCloseHandler = (id) => {
+    drawerCloseHandler = () => {
         this.setState({ slider: false })
     }
     drawerOpenHandler = () => {
@@ -163,13 +163,13 @@ class Table extends Component {
 
         return (
             <React.Fragment>
-                <SideDrawer open={this.state.slider}>
-                    <div className='p-5'>
+                <SideDrawer open={this.state.slider} close={this.drawerCloseHandler}>
+                    <div className='pt-5 m-5' style={{position:'static'}}>
                         <FloatingInput type='name' id='name' placeholder='Name' for='name' label='Name' value={this.state.singleData.name} changed={this.onChangeHandler} />
                         <FloatingInput type='email' id='email' placeholder='Email' for='email' label='Email' value={this.state.singleData.email} changed={this.onChangeHandler} />
                         <FloatingInput type='phone' id='phone' placeholder='Phone' for='phone' label='Phone' value={this.state.singleData.phone} changed={this.onChangeHandler} />
                         <FloatingInput type='city' id='city' placeholder='City' for='city' label='City' value={this.state.singleData.city} changed={this.onChangeHandler} />
-                        <button type="button" className="btn btn-danger mt-5 me-5" onClick={() => this.drawerCloseHandler(this.state.singleData.id)}>Cancel</button>
+                        <button type="button" className="btn btn-danger mt-5 me-5" onClick={() => this.drawerCloseHandler()}>Cancel</button>
                         <button type="button" className="btn btn-primary mt-5" onClick={() => this.submitDetailHandler(this.state.singleData.id)}>Save</button>
                     </div>
                 </SideDrawer>
