@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Modal from '../MODAL/Modal';
 import FloatingInput from '../FloatingInput/floatingInput';
 import dataId from '../IdGenerator/dataId';
 import SideDrawer from '../SideDrawer/SideDrawer';
@@ -14,28 +13,14 @@ class Table extends Component {
             city: '',
             id: ''
         },
-        editSingleData: {
-            name: '',
-            email: '',
-            phone: '',
-            city: '',
-            id: ''
-        },
         data: [],
-        adding: false,
         slider: false,
-        editdisabled: false,
     }
     drawerCloseHandler = (id) => {
-        document.getElementById('delete' + id).disabled = false
-        this.setState({ slider: false, editdisabled: false })
+        this.setState({ slider: false })
     }
     drawerOpenHandler = () => {
         this.setState({ slider: true })
-    }
-
-    cancelAddingHandler = () => {
-        this.setState({ adding: false })
     }
 
     addDetailHandler = () => {
@@ -46,15 +31,28 @@ class Table extends Component {
             city: '',
             id: ''
         }
-        this.setState({ adding: true, singleData: tempSingleData })
+        this.setState({ slider: true, singleData: tempSingleData })
     }
 
-    submitDetailHandler = () => {
-        let updatedData = {
-            ...this.state.singleData,
-            id: dataId()
+    submitDetailHandler = (id) => {
+        let data
+        if (id) {
+            data = [...this.state.data]
+            for (let singledata in data) {
+                let dataId = data[singledata].id
+                if (dataId === id) {
+                    data[singledata] = this.state.singleData
+                    break;
+                }
+            }
         }
-        let concatedData = this.state.data.concat(updatedData)
+        else {
+            let updatedData = {
+                ...this.state.singleData,
+                id: dataId()
+            }
+            data = this.state.data.concat(updatedData)
+        }
         let updatedSingleData = {
             name: '',
             email: '',
@@ -67,7 +65,7 @@ class Table extends Component {
         }
         let validity = this.validationHandler(singleData)
         if (validity) {
-            this.setState({ data: concatedData, singleData: updatedSingleData, adding: false })
+            this.setState({ data: data, singleData: updatedSingleData, slider: false })
         }
     }
 
@@ -80,57 +78,17 @@ class Table extends Component {
         this.setState({ singleData: singleDataCopy })
     }
 
-    editOnChangeHandler = (event) => {
-        let field = event.target.id
-        let singleDataCopy = {
-            ...this.state.editSingleData
-        }
-        singleDataCopy[field] = event.target.value
-        this.setState({ editSingleData: singleDataCopy })
-    }
-
-    saveChangesHandler = (recId) => {
-        let id =this.state.editSingleData.id
+    editEventHandler = (id) => {
         let tempdata = [...this.state.data]
+        let tempSingleData
         for (let singledata in tempdata) {
             let dataId = tempdata[singledata].id
             if (dataId === id) {
-                tempdata[singledata] = this.state.editSingleData
+                tempSingleData = tempdata[singledata]
                 break;
             }
         }
-        let tempSingleData = {
-            name: '',
-            email: '',
-            phone: '',
-            city: '',
-            id: ''
-        }
-        let validity = this.validationHandler(this.state.editSingleData)
-        if (validity) {
-            document.getElementById('delete' + recId).disabled = false
-            this.setState({ data: tempdata, singleData: tempSingleData, slider: false, editdisabled: false })
-        }
-        
-
-    }
-
-    editEventHandler = (id) => {
-        let access = window.confirm('Are you sure');
-        if (access) {
-            document.getElementById('delete' + id).disabled = true
-            let tempdata = [...this.state.data]
-            let tempSingleData
-            for (let singledata in tempdata) {
-                let dataId = tempdata[singledata].id
-                if (dataId === id) {
-                    tempSingleData = tempdata[singledata]
-                    break;
-                }
-            }
-            this.setState({ editSingleData: tempSingleData, slider: true, editdisabled: true })
-
-        }
+        this.setState({ singleData: tempSingleData, slider: true })
     }
 
     deleteEventHandler = (id) => {
@@ -167,13 +125,6 @@ class Table extends Component {
     }
 
     render() {
-
-        let rightSplitClasses = null
-        let leftSplitClasses = null
-        if (this.state.slider === true) {
-            rightSplitClasses = 'splitRight right'
-            leftSplitClasses = 'splitLeft left'
-        }
         let table;
         if (this.state.data.length > 0) {
             table = <div className='table-responsive'>
@@ -198,7 +149,7 @@ class Table extends Component {
                                     <td>{data.email}</td>
                                     <td>{data.phone}</td>
                                     <td>{data.city}</td>
-                                    <td><button type="button" className="btn btn-warning" disabled={this.state.editdisabled} id={'edit' + data.id} onClick={() => this.editEventHandler(data.id)}>Edit</button></td>
+                                    <td><button type="button" className="btn btn-warning" id={'edit' + data.id} onClick={() => this.editEventHandler(data.id)}>Edit</button></td>
                                     <td><button type="button" className="btn btn-danger" id={'delete' + data.id} onClick={() => this.deleteEventHandler(data.id)}>Delete</button></td>
                                 </tr>
 
@@ -212,30 +163,18 @@ class Table extends Component {
 
         return (
             <React.Fragment>
-                <div className={rightSplitClasses}>
-                    <SideDrawer open={this.state.slider}>
-                        <div className='p-5'>
-                            <FloatingInput type='name' id='name' placeholder='Name' for='name' label='Name' value={this.state.editSingleData.name} changed={this.editOnChangeHandler} />
-                            <FloatingInput type='email' id='email' placeholder='Email' for='email' label='Email' value={this.state.editSingleData.email} changed={this.editOnChangeHandler} />
-                            <FloatingInput type='phone' id='phone' placeholder='Phone' for='phone' label='Phone' value={this.state.editSingleData.phone} changed={this.editOnChangeHandler} />
-                            <FloatingInput type='city' id='city' placeholder='City' for='city' label='City' value={this.state.editSingleData.city} changed={this.editOnChangeHandler} />
-                            <button type="button" className="btn btn-danger mt-5 me-5" onClick={() => this.drawerCloseHandler(this.state.editSingleData.id)}>Cancel</button>
-                            <button type="button" className="btn btn-primary mt-5" onClick={() => this.saveChangesHandler(this.state.editSingleData.id)}>Save</button>
-                        </div>
-                    </SideDrawer>
-                </div>
-                <div className={leftSplitClasses} >
-                    <Modal show={this.state.adding} modalClosed={this.cancelAddingHandler} slider={this.state.slider}>
+                <SideDrawer open={this.state.slider}>
+                    <div className='p-5'>
                         <FloatingInput type='name' id='name' placeholder='Name' for='name' label='Name' value={this.state.singleData.name} changed={this.onChangeHandler} />
                         <FloatingInput type='email' id='email' placeholder='Email' for='email' label='Email' value={this.state.singleData.email} changed={this.onChangeHandler} />
                         <FloatingInput type='phone' id='phone' placeholder='Phone' for='phone' label='Phone' value={this.state.singleData.phone} changed={this.onChangeHandler} />
                         <FloatingInput type='city' id='city' placeholder='City' for='city' label='City' value={this.state.singleData.city} changed={this.onChangeHandler} />
-                        <button type="button" className="btn btn-danger mt-5 me-5" onClick={this.cancelAddingHandler}>Cancel</button>
-                        <button type="button" className="btn btn-primary mt-5" onClick={this.submitDetailHandler}>Submit</button>
-                    </Modal>
-                    <button type="button" className="btn btn-primary my-5" onClick={this.addDetailHandler}>Add Details</button>
-                    {table}
-                </div>
+                        <button type="button" className="btn btn-danger mt-5 me-5" onClick={() => this.drawerCloseHandler(this.state.singleData.id)}>Cancel</button>
+                        <button type="button" className="btn btn-primary mt-5" onClick={() => this.submitDetailHandler(this.state.singleData.id)}>Save</button>
+                    </div>
+                </SideDrawer>
+                <button type="button" className="btn btn-primary my-5" onClick={this.addDetailHandler}>Add Details</button>
+                {table}
             </React.Fragment>
         )
     }
